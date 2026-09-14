@@ -670,7 +670,8 @@ def optimizar_desde_excel(archivo_excel):
                 "pero no se generaron asignaciones."
             )
         }
-        return {
+
+    return {
         "estado": "OK",
         "mensaje": "Horario optimizado correctamente.",
         "grupos": len(grupos),
