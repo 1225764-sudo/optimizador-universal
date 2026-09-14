@@ -285,9 +285,17 @@ st.markdown(
        IMÁGENES
     -------------------------------------------------------- */
 
-    div[data-testid="stImage"] img {
-        border-radius: 14px;
-    }
+    div[data-testid="stImage"] {
+    width: 100% !important;
+}
+
+div[data-testid="stImage"] img {
+    border-radius: 14px;
+    width: 100% !important;
+    height: 320px !important;
+    object-fit: cover !important;
+    object-position: center right !important;
+}
 
 
     /* --------------------------------------------------------
@@ -557,9 +565,9 @@ with st.sidebar:
 with st.container(border=True):
 
     hero_left, hero_right = st.columns(
-        [1.0, 1.35],
-        gap="large"
-    )
+    [0.85, 1.75],
+    gap="large"
+)
 
     with hero_left:
 
