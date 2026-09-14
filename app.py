@@ -103,27 +103,50 @@ st.markdown(
     }
 
 
-    /* --------------------------------------------------------
+        /* --------------------------------------------------------
        SIDEBAR
     -------------------------------------------------------- */
 
     section[data-testid="stSidebar"] {
         background: #102E55;
         border-right: none;
+        min-width: 300px !important;
+        max-width: 300px !important;
+    }
+
+    section[data-testid="stSidebar"] > div {
+        padding-top: 1.4rem;
+        padding-left: 1.15rem;
+        padding-right: 1.15rem;
     }
 
     section[data-testid="stSidebar"] * {
         color: #EEF5FF;
     }
 
-    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h1 {
+        font-size: 1.85rem !important;
+        line-height: 1.05 !important;
+        letter-spacing: -0.02em;
+        white-space: normal !important;
+        word-break: keep-all !important;
+        overflow-wrap: normal !important;
+        hyphens: none !important;
+        color: white !important;
+        max-width: 100%;
+    }
+
     section[data-testid="stSidebar"] h2,
     section[data-testid="stSidebar"] h3 {
         color: white !important;
     }
 
+    section[data-testid="stSidebar"] p {
+        line-height: 1.55;
+    }
+
     section[data-testid="stSidebar"] hr {
-        border-color: rgba(255,255,255,0.14);
+        border-color: rgba(255, 255, 255, 0.14);
     }
 
     section[data-testid="stSidebar"] div[data-testid="stCaptionContainer"] {
@@ -527,62 +550,6 @@ with st.sidebar:
     )
 
 
-# ============================================================
-# HERO
-# ============================================================
-
-with st.container(border=True):
-
-    hero_left, hero_right = (
-        st.columns(
-            [1.05, 1.15],
-            gap="large"
-        )
-    )
-
-    with hero_left:
-
-        st.caption(
-            "PLANIFICA · OPTIMIZA · TRANSFORMA"
-        )
-
-        st.title(
-            "Optimizador Universal"
-        )
-
-        st.markdown(
-            "### Convierte datos operativos "
-            "en horarios eficientes."
-        )
-
-        st.write(
-            "Una plataforma flexible para "
-            "instituciones educativas y "
-            "organizaciones que buscan "
-            "aprovechar mejor sus recursos "
-            "mediante modelos de optimización."
-        )
-
-        st.info(
-            "📊 Basada en Investigación "
-            "de Operaciones"
-        )
-
-    with hero_right:
-
-        if HERO_PATH.exists():
-
-            st.image(
-                str(HERO_PATH),
-                use_container_width=True
-            )
-
-        else:
-
-            st.warning(
-                "No se encontró "
-                "assets/hero-campus.png"
-            )
 
 
 # ============================================================
