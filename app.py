@@ -550,7 +550,61 @@ with st.sidebar:
     )
 
 
+# ============================================================
+# HERO
+# ============================================================
 
+with st.container(border=True):
+
+    hero_left, hero_right = st.columns(
+        [1.0, 1.35],
+        gap="large"
+    )
+
+    with hero_left:
+
+        st.caption(
+            "PLANIFICA · OPTIMIZA · TRANSFORMA"
+        )
+
+        st.title(
+            "Optimizador Universal"
+        )
+
+        st.markdown(
+            "### Convierte datos operativos en horarios eficientes."
+        )
+
+        st.write(
+            """
+            Una plataforma flexible para instituciones educativas
+            y organizaciones que buscan aprovechar mejor sus recursos
+            mediante modelos de optimización.
+            """
+        )
+
+        st.info(
+            "📊 Basada en Investigación de Operaciones"
+        )
+
+        st.caption(
+            "Una mejor organización construye más oportunidades."
+        )
+
+    with hero_right:
+
+        if HERO_PATH.exists():
+
+            st.image(
+                str(HERO_PATH),
+                use_container_width=True
+            )
+
+        else:
+
+            st.warning(
+                "No se encontró assets/hero-campus.png"
+            )
 
 # ============================================================
 # BLOQUES DE APLICACIÓN
