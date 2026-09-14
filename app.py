@@ -290,11 +290,12 @@ st.markdown(
 }
 
 div[data-testid="stImage"] img {
-    border-radius: 14px;
     width: 100% !important;
-    height: 320px !important;
+    height: 280px !important;
     object-fit: cover !important;
-    object-position: center right !important;
+    object-position: center center !important;
+    border-radius: 14px !important;
+    display: block !important;
 }
 
 
@@ -305,7 +306,79 @@ div[data-testid="stImage"] img {
     hr {
         border-color: #E2E8F0;
     }
+/* =========================================================
+   AJUSTE FINAL DEL HERO
+   ========================================================= */
 
+/* Evita que las columnas del hero se vuelvan demasiado estrechas */
+div[data-testid="stHorizontalBlock"]:has(.hero-marker) {
+    align-items: center;
+    gap: 2rem;
+}
+
+/* Título principal */
+.hero-title {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2.7rem, 4vw, 4.4rem);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    color: #0B315F;
+    margin: 0 0 1.5rem 0;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+}
+
+/* Columna de texto */
+.hero-copy {
+    min-width: 0;
+}
+
+/* Contenedor de la imagen */
+.hero-image-wrap {
+    width: 100%;
+    min-height: 280px;
+    height: 320px;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #EAF2FB;
+    box-shadow: 0 12px 30px rgba(15, 49, 92, 0.08);
+}
+
+/* Imagen del campus */
+.hero-image-wrap img {
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+/* Pantallas medianas */
+@media (max-width: 1100px) {
+    .hero-title {
+        font-size: 2.8rem;
+    }
+
+    .hero-image-wrap {
+        height: 280px;
+    }
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 800px) {
+    .hero-title {
+        font-size: 2.4rem;
+    }
+
+    .hero-image-wrap {
+        height: 230px;
+        min-height: 230px;
+    }
+}
+
+    
     </style>
     """,
     unsafe_allow_html=True
@@ -565,19 +638,19 @@ with st.sidebar:
 with st.container(border=True):
 
     hero_left, hero_right = st.columns(
-    [0.85, 1.75],
+    [1.15, 1.35],
     gap="large"
 )
-
     with hero_left:
 
         st.caption(
             "PLANIFICA · OPTIMIZA · TRANSFORMA"
         )
 
-        st.title(
-            "Optimizador Universal"
-        )
+        st.markdown(
+    '<h1 class="hero-title">Optimizador<br>Universal</h1>',
+    unsafe_allow_html=True
+)
 
         st.markdown(
             "### Convierte datos operativos en horarios eficientes."
@@ -599,20 +672,15 @@ with st.container(border=True):
             "Una mejor organización construye más oportunidades."
         )
 
-    with hero_right:
-
-        if HERO_PATH.exists():
-
-            st.image(
-                str(HERO_PATH),
-                use_container_width=True
-            )
-
-        else:
-
-            st.warning(
-                "No se encontró assets/hero-campus.png"
-            )
+with hero_right:
+    if HERO_PATH.exists():
+        st.markdown('<div class="hero-marker"></div>', unsafe_allow_html=True)
+        st.image(
+            str(HERO_PATH),
+            use_container_width=True
+        )
+    else:
+        st.warning("No se encontró assets/hero-campus.png")
 
 # ============================================================
 # BLOQUES DE APLICACIÓN
