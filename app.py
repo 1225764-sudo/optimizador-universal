@@ -12,7 +12,196 @@ from optimizer import optimizar_desde_excel
 st.set_page_config(
     page_title="Optimizador Universal",
     page_icon="⚙️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+
+# ============================================================
+# ESTILOS
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+
+    /* Fondo general */
+    .stApp {
+        background-color: #F8FAFC;
+    }
+
+    /* Contenedor principal */
+    .block-container {
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        max-width: 1400px;
+    }
+
+    /* Hero */
+    .hero {
+        background: linear-gradient(
+            135deg,
+            #0F172A 0%,
+            #1E3A8A 55%,
+            #2563EB 100%
+        );
+        padding: 2.3rem 2.5rem;
+        border-radius: 22px;
+        color: white;
+        margin-bottom: 1.8rem;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.15);
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.4rem;
+        color: white;
+    }
+
+    .hero p {
+        font-size: 1.06rem;
+        color: #E2E8F0;
+        margin-bottom: 0;
+        line-height: 1.7;
+    }
+
+    .badge {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.14);
+        color: white;
+        padding: 0.38rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.84rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    /* Tarjetas de pasos */
+    .step-card {
+        background: white;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 1rem 1.1rem;
+        min-height: 125px;
+        box-shadow: 0 7px 20px rgba(15, 23, 42, 0.05);
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: #DBEAFE;
+        color: #1D4ED8;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 0.7rem;
+    }
+
+    .step-title {
+        font-weight: 700;
+        color: #0F172A;
+        margin-bottom: 0.2rem;
+    }
+
+    .step-text {
+        color: #64748B;
+        font-size: 0.92rem;
+        line-height: 1.4;
+    }
+
+    /* Secciones */
+    .section-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #0F172A;
+        margin-top: 1rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .section-subtitle {
+        color: #64748B;
+        margin-bottom: 1rem;
+    }
+
+    /* Métricas */
+    div[data-testid="stMetric"] {
+        background: white;
+        border: 1px solid #E2E8F0;
+        padding: 1rem;
+        border-radius: 16px;
+        box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
+    }
+
+    div[data-testid="stMetricLabel"] {
+        color: #64748B;
+        font-weight: 600;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: #0F172A;
+        font-weight: 800;
+    }
+
+    /* Botones */
+    div.stButton > button {
+        border-radius: 12px;
+        font-weight: 700;
+        min-height: 48px;
+        border: none;
+    }
+
+    div.stButton > button[kind="primary"] {
+        background: linear-gradient(
+            90deg,
+            #2563EB,
+            #14B8A6
+        );
+        color: white;
+    }
+
+    div.stDownloadButton > button {
+        border-radius: 12px;
+        min-height: 46px;
+        font-weight: 700;
+    }
+
+    /* Dataframes */
+    div[data-testid="stDataFrame"] {
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    /* Alertas */
+    div[data-testid="stAlert"] {
+        border-radius: 14px;
+    }
+
+    /* Sidebar */
+    section[data-testid="stSidebar"] {
+        background: #0F172A;
+    }
+
+    section[data-testid="stSidebar"] * {
+        color: #E2E8F0;
+    }
+
+    /* Footer */
+    .footer {
+        margin-top: 2rem;
+        padding-top: 1.2rem;
+        border-top: 1px solid #E2E8F0;
+        color: #94A3B8;
+        font-size: 0.88rem;
+        text-align: center;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
 
@@ -21,9 +210,6 @@ st.set_page_config(
 # ============================================================
 
 def generar_excel(df_solucion):
-    """
-    Genera un Excel profesional en memoria con varias hojas.
-    """
 
     salida = BytesIO()
 
@@ -32,29 +218,18 @@ def generar_excel(df_solucion):
         engine="openpyxl"
     ) as writer:
 
-        # --------------------------------------------------------
-        # HOJA GENERAL
-        # --------------------------------------------------------
-
         df_solucion.to_excel(
             writer,
             sheet_name="Horario General",
             index=False
         )
 
-        # --------------------------------------------------------
-        # CARGA DOCENTE
-        # --------------------------------------------------------
-
         carga_docente = (
             df_solucion
             .groupby("Profesor")
             .size()
             .reset_index(name="Clases")
-            .sort_values(
-                "Clases",
-                ascending=False
-            )
+            .sort_values("Clases", ascending=False)
         )
 
         carga_docente.to_excel(
@@ -63,19 +238,12 @@ def generar_excel(df_solucion):
             index=False
         )
 
-        # --------------------------------------------------------
-        # USO DE ESPACIOS
-        # --------------------------------------------------------
-
         uso_espacios = (
             df_solucion
             .groupby("Espacio")
             .size()
             .reset_index(name="Clases")
-            .sort_values(
-                "Clases",
-                ascending=False
-            )
+            .sort_values("Clases", ascending=False)
         )
 
         uso_espacios.to_excel(
@@ -84,27 +252,17 @@ def generar_excel(df_solucion):
             index=False
         )
 
-        # --------------------------------------------------------
-        # POR GRUPO
-        # --------------------------------------------------------
-
         for grupo in df_solucion["Grupo"].unique():
 
             df_grupo = df_solucion[
                 df_solucion["Grupo"] == grupo
             ]
 
-            nombre_hoja = f"Grupo {grupo}"[:31]
-
             df_grupo.to_excel(
                 writer,
-                sheet_name=nombre_hoja,
+                sheet_name=f"Grupo {grupo}"[:31],
                 index=False
             )
-
-        # --------------------------------------------------------
-        # POR PROFESOR
-        # --------------------------------------------------------
 
         for profesor in df_solucion["Profesor"].unique():
 
@@ -112,44 +270,33 @@ def generar_excel(df_solucion):
                 df_solucion["Profesor"] == profesor
             ]
 
-            nombre_hoja = f"Prof {profesor}"[:31]
-
             df_profesor.to_excel(
                 writer,
-                sheet_name=nombre_hoja,
+                sheet_name=f"Prof {profesor}"[:31],
                 index=False
             )
 
-        # --------------------------------------------------------
-        # AJUSTAR COLUMNAS
-        # --------------------------------------------------------
-
         for hoja in writer.book.worksheets:
+
+            hoja.freeze_panes = "A2"
 
             for columna in hoja.columns:
 
-                longitud_maxima = 0
+                longitud = 0
                 letra = columna[0].column_letter
 
                 for celda in columna:
 
-                    valor = celda.value
-
-                    if valor is not None:
-
-                        longitud_maxima = max(
-                            longitud_maxima,
-                            len(str(valor))
+                    if celda.value is not None:
+                        longitud = max(
+                            longitud,
+                            len(str(celda.value))
                         )
 
-                hoja.column_dimensions[
-                    letra
-                ].width = min(
-                    longitud_maxima + 3,
+                hoja.column_dimensions[letra].width = min(
+                    longitud + 3,
                     40
                 )
-
-            hoja.freeze_panes = "A2"
 
     salida.seek(0)
 
@@ -157,93 +304,209 @@ def generar_excel(df_solucion):
 
 
 def calcular_conflictos(df):
-    """
-    Comprueba conflictos básicos en la solución.
-    """
 
-    conflictos_grupo = (
-        df.duplicated(
-            subset=["Grupo", "Horario"],
-            keep=False
-        ).sum()
-    )
+    conflictos_grupo = df.duplicated(
+        subset=["Grupo", "Horario"],
+        keep=False
+    ).sum()
 
-    conflictos_profesor = (
-        df.duplicated(
-            subset=["Profesor", "Horario"],
-            keep=False
-        ).sum()
-    )
+    conflictos_profesor = df.duplicated(
+        subset=["Profesor", "Horario"],
+        keep=False
+    ).sum()
 
-    conflictos_espacio = (
-        df.duplicated(
-            subset=["Espacio", "Horario"],
-            keep=False
-        ).sum()
-    )
+    conflictos_espacio = df.duplicated(
+        subset=["Espacio", "Horario"],
+        keep=False
+    ).sum()
 
-    total = (
+    return (
         conflictos_grupo
         + conflictos_profesor
         + conflictos_espacio
     )
 
-    return total
+
+# ============================================================
+# SIDEBAR
+# ============================================================
+
+with st.sidebar:
+
+    st.markdown("## ⚙️ Optimizador Universal")
+
+    st.markdown(
+        """
+        Plataforma para la asignación inteligente
+        de horarios, espacios y recursos.
+        """
+    )
+
+    st.divider()
+
+    st.markdown("### Flujo")
+
+    st.markdown(
+        """
+        **1.** Carga tu plantilla  
+        **2.** Ejecuta la optimización  
+        **3.** Analiza resultados  
+        **4.** Descarga tus archivos
+        """
+    )
+
+    st.divider()
+
+    st.markdown("### Tecnología")
+
+    st.markdown(
+        """
+        Python  
+        OR-Tools CP-SAT  
+        Streamlit  
+        Pandas
+        """
+    )
 
 
 # ============================================================
-# ENCABEZADO
+# HERO
 # ============================================================
 
-st.title("⚙️ Optimizador Universal")
+st.markdown(
+    """
+    <div class="hero">
+        <div class="badge">
+            Optimización inteligente con Investigación de Operaciones
+        </div>
 
-st.subheader(
-    "Optimización inteligente de horarios, "
-    "espacios y recursos"
+        <h1>Optimizador Universal</h1>
+
+        <p>
+            Transforma datos operativos en asignaciones eficientes.
+            Genera horarios considerando disponibilidad de personal,
+            capacidad de espacios, recursos y restricciones configurables.
+        </p>
+    </div>
+    """,
+    unsafe_allow_html=True
 )
 
-st.write(
-    """
-    Plataforma basada en Investigación de Operaciones
-    para generar asignaciones eficientes considerando
-    disponibilidad de personal, capacidad de espacios,
-    recursos y restricciones operativas.
-    """
+
+# ============================================================
+# FLUJO VISUAL
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">Cómo funciona</div>',
+    unsafe_allow_html=True
 )
 
-st.divider()
+st.markdown(
+    '<div class="section-subtitle">'
+    'Un flujo simple para convertir tu plantilla en una solución optimizada.'
+    '</div>',
+    unsafe_allow_html=True
+)
+
+paso1, paso2, paso3, paso4 = st.columns(4)
+
+with paso1:
+    st.markdown(
+        """
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-title">Carga</div>
+            <div class="step-text">
+                Sube la plantilla Excel con los datos de la institución.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with paso2:
+    st.markdown(
+        """
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-title">Optimiza</div>
+            <div class="step-text">
+                El motor analiza restricciones y busca una solución factible.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with paso3:
+    st.markdown(
+        """
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-title">Analiza</div>
+            <div class="step-text">
+                Revisa indicadores, horarios, carga docente y uso de espacios.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+with paso4:
+    st.markdown(
+        """
+        <div class="step-card">
+            <div class="step-number">4</div>
+            <div class="step-title">Descarga</div>
+            <div class="step-text">
+                Exporta los resultados en Excel o CSV.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+st.write("")
 
 
 # ============================================================
-# CARGAR ARCHIVO
+# CARGA DE ARCHIVO
 # ============================================================
 
-st.header("📤 1. Cargar plantilla")
+st.markdown(
+    '<div class="section-title">📤 Cargar plantilla</div>',
+    unsafe_allow_html=True
+)
 
-st.write(
-    "Carga el archivo Excel con la información de "
-    "grupos, personal, espacios, horarios y disponibilidad."
+st.markdown(
+    '<div class="section-subtitle">'
+    'Selecciona el archivo Excel que contiene los datos a optimizar.'
+    '</div>',
+    unsafe_allow_html=True
 )
 
 archivo_excel = st.file_uploader(
-    "Selecciona tu archivo Excel",
-    type=["xlsx"]
+    "Archivo Excel",
+    type=["xlsx"],
+    label_visibility="collapsed"
 )
 
 
 # ============================================================
-# PROCESAR ARCHIVO
+# PROCESAMIENTO
 # ============================================================
 
 if archivo_excel is not None:
 
     st.success(
-        f"✅ Archivo cargado: {archivo_excel.name}"
+        f"Archivo listo: {archivo_excel.name}"
     )
 
-    st.divider()
-
-    st.header("⚙️ 2. Optimización")
+    st.markdown(
+        '<div class="section-title">⚙️ Ejecutar optimización</div>',
+        unsafe_allow_html=True
+    )
 
     if st.button(
         "🚀 Generar horario óptimo",
@@ -252,8 +515,7 @@ if archivo_excel is not None:
     ):
 
         with st.spinner(
-            "Analizando restricciones y buscando "
-            "una solución factible..."
+            "Analizando restricciones y buscando una solución..."
         ):
 
             try:
@@ -269,10 +531,6 @@ if archivo_excel is not None:
                     "mensaje": str(error)
                 }
 
-        # ========================================================
-        # PROTECCIÓN POR SI EL MOTOR NO DEVUELVE RESULTADO
-        # ========================================================
-
         if resultado is None:
 
             st.error(
@@ -282,106 +540,113 @@ if archivo_excel is not None:
             st.stop()
 
         # ========================================================
-        # SOLUCIÓN ENCONTRADA
+        # OK
         # ========================================================
 
         if resultado["estado"] == "OK":
 
-            df_solucion = resultado["solucion"].copy()
+            df_solucion = resultado[
+                "solucion"
+            ].copy()
 
             conflictos = calcular_conflictos(
                 df_solucion
             )
 
             st.success(
-                "🎉 Horario optimizado correctamente."
+                "✅ Optimización completada correctamente."
             )
 
             # ====================================================
             # DASHBOARD
             # ====================================================
 
-            st.header("📊 3. Dashboard")
+            st.markdown(
+                '<div class="section-title">📊 Dashboard</div>',
+                unsafe_allow_html=True
+            )
 
-            col1, col2, col3, col4 = st.columns(4)
+            st.markdown(
+                '<div class="section-subtitle">'
+                'Resumen ejecutivo de la solución generada.'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
-            col1.metric(
+            c1, c2, c3, c4 = st.columns(4)
+
+            c1.metric(
                 "Eventos",
                 len(df_solucion)
             )
 
-            col2.metric(
+            c2.metric(
                 "Grupos",
                 df_solucion["Grupo"].nunique()
             )
 
-            col3.metric(
-                "Profesores",
+            c3.metric(
+                "Profesores utilizados",
                 df_solucion["Profesor"].nunique()
             )
 
-            col4.metric(
+            c4.metric(
                 "Espacios utilizados",
                 df_solucion["Espacio"].nunique()
             )
 
-            col5, col6, col7, col8 = st.columns(4)
+            c5, c6, c7, c8 = st.columns(4)
 
-            col5.metric(
-                "Bloques horarios",
+            c5.metric(
+                "Bloques utilizados",
                 df_solucion["Horario"].nunique()
             )
 
-            col6.metric(
+            c6.metric(
                 "Materias",
                 df_solucion["Materia"].nunique()
             )
 
-            col7.metric(
+            c7.metric(
                 "Conflictos",
                 conflictos
             )
 
-            porcentaje = 100
-
-            col8.metric(
+            c8.metric(
                 "Eventos programados",
-                f"{porcentaje}%"
+                "100%"
             )
-
-            # ====================================================
-            # VALIDACIÓN
-            # ====================================================
 
             if conflictos == 0:
 
                 st.success(
-                    "✅ Validación completada: "
-                    "no se detectaron conflictos de "
-                    "grupo, profesor o espacio."
+                    "Validación completada: "
+                    "no se detectaron conflictos de grupo, "
+                    "profesor o espacio."
                 )
 
             else:
 
                 st.warning(
-                    f"⚠️ Se detectaron "
-                    f"{conflictos} posibles conflictos."
+                    f"Se detectaron {conflictos} "
+                    "posibles conflictos."
                 )
 
-            st.divider()
-
             # ====================================================
-            # PESTAÑAS
+            # RESULTADOS
             # ====================================================
 
-            st.header("📅 4. Resultados")
+            st.markdown(
+                '<div class="section-title">📅 Resultados</div>',
+                unsafe_allow_html=True
+            )
 
-            tab1, tab2, tab3, tab4 = st.tabs(
+            tabs = st.tabs(
                 [
-                    "📅 Horario general",
-                    "👥 Por grupo",
-                    "👩‍🏫 Carga docente",
-                    "🏫 Uso de espacios"
+                    "Horario general",
+                    "Por grupo",
+                    "Carga docente",
+                    "Uso de espacios"
                 ]
             )
 
@@ -389,11 +654,7 @@ if archivo_excel is not None:
             # HORARIO GENERAL
             # ----------------------------------------------------
 
-            with tab1:
-
-                st.subheader(
-                    "Horario optimizado"
-                )
+            with tabs[0]:
 
                 st.dataframe(
                     df_solucion,
@@ -405,17 +666,15 @@ if archivo_excel is not None:
             # POR GRUPO
             # ----------------------------------------------------
 
-            with tab2:
-
-                grupos_disponibles = sorted(
-                    df_solucion[
-                        "Grupo"
-                    ].unique()
-                )
+            with tabs[1]:
 
                 grupo_seleccionado = st.selectbox(
                     "Selecciona un grupo",
-                    grupos_disponibles
+                    sorted(
+                        df_solucion[
+                            "Grupo"
+                        ].unique()
+                    )
                 )
 
                 df_grupo = df_solucion[
@@ -433,7 +692,7 @@ if archivo_excel is not None:
             # CARGA DOCENTE
             # ----------------------------------------------------
 
-            with tab3:
+            with tabs[2]:
 
                 carga_docente = (
                     df_solucion
@@ -464,7 +723,7 @@ if archivo_excel is not None:
             # USO DE ESPACIOS
             # ----------------------------------------------------
 
-            with tab4:
+            with tabs[3]:
 
                 uso_espacios = (
                     df_solucion
@@ -491,13 +750,21 @@ if archivo_excel is not None:
                     )
                 )
 
-            st.divider()
-
             # ====================================================
             # DESCARGAS
             # ====================================================
 
-            st.header("📥 5. Descargar resultados")
+            st.markdown(
+                '<div class="section-title">📥 Descargar resultados</div>',
+                unsafe_allow_html=True
+            )
+
+            st.markdown(
+                '<div class="section-subtitle">'
+                'Exporta la solución para consulta, entrega o análisis.'
+                '</div>',
+                unsafe_allow_html=True
+            )
 
             excel_resultado = generar_excel(
                 df_solucion
@@ -511,17 +778,12 @@ if archivo_excel is not None:
                 .encode("utf-8-sig")
             )
 
-            col_descarga1, col_descarga2 = (
-                st.columns(2)
-            )
+            d1, d2 = st.columns(2)
 
-            with col_descarga1:
+            with d1:
 
                 st.download_button(
-                    label=(
-                        "📊 Descargar Excel "
-                        "profesional"
-                    ),
+                    "📊 Descargar Excel profesional",
                     data=excel_resultado,
                     file_name=(
                         "Horario_Optimizado_"
@@ -535,47 +797,42 @@ if archivo_excel is not None:
                     use_container_width=True
                 )
 
-            with col_descarga2:
+            with d2:
 
                 st.download_button(
-                    label="📄 Descargar CSV",
+                    "📄 Descargar CSV",
                     data=csv_resultado,
-                    file_name=(
-                        "Horario_Optimizado.csv"
-                    ),
+                    file_name="Horario_Optimizado.csv",
                     mime="text/csv",
                     use_container_width=True
                 )
 
-            st.success(
-                f"✅ {len(df_solucion)} eventos "
-                "fueron programados correctamente."
-            )
-
         # ========================================================
-        # MODELO SIN SOLUCIÓN
+        # SIN SOLUCIÓN
         # ========================================================
 
         elif resultado["estado"] == "SIN_SOLUCION":
 
             st.error(
-                "❌ No se encontró una solución factible."
+                "No se encontró una solución factible."
             )
 
             st.warning(
                 resultado["mensaje"]
             )
 
-            st.info(
-                """
-                Revisa principalmente:
-                disponibilidad del personal,
-                capacidad de los espacios,
-                tipos de recurso,
-                materias habilitadas y
-                cantidad de bloques horarios.
-                """
-            )
+            with st.expander(
+                "¿Qué puedo revisar?"
+            ):
+
+                st.write(
+                    """
+                    Revisa la disponibilidad del personal,
+                    capacidad y tipo de espacios,
+                    materias habilitadas y número de bloques
+                    horarios disponibles.
+                    """
+                )
 
         # ========================================================
         # ERROR
@@ -584,7 +841,7 @@ if archivo_excel is not None:
         else:
 
             st.error(
-                "❌ No fue posible procesar la plantilla."
+                "No fue posible procesar la plantilla."
             )
 
             st.write(
@@ -597,17 +854,20 @@ if archivo_excel is not None:
 else:
 
     st.info(
-        "👆 Sube una plantilla Excel para comenzar."
+        "Sube una plantilla Excel para comenzar."
     )
 
 
 # ============================================================
-# PIE
+# FOOTER
 # ============================================================
 
-st.divider()
-
-st.caption(
-    "Optimizador Universal · "
-    "Plataforma basada en Investigación de Operaciones"
+st.markdown(
+    """
+    <div class="footer">
+        Optimizador Universal · Plataforma de optimización
+        basada en Investigación de Operaciones
+    </div>
+    """,
+    unsafe_allow_html=True
 )
