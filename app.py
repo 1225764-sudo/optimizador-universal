@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import base64
 
 from io import BytesIO
 from pathlib import Path
@@ -9,7 +8,7 @@ from optimizer import optimizar_desde_excel
 
 
 # ============================================================
-# CONFIGURACIÓN GENERAL
+# CONFIGURACIÓN
 # ============================================================
 
 st.set_page_config(
@@ -21,631 +20,269 @@ st.set_page_config(
 
 
 # ============================================================
-# IMAGEN DEL HERO
+# RUTAS
 # ============================================================
 
-RUTA_HERO = Path("assets/hero-campus.png")
+BASE_DIR = Path(__file__).parent
 
-if RUTA_HERO.exists():
-    hero_base64 = base64.b64encode(
-        RUTA_HERO.read_bytes()
-    ).decode()
-
-    hero_background = (
-        f"linear-gradient("
-        f"90deg,"
-        f"rgba(248,250,252,0.99) 0%,"
-        f"rgba(248,250,252,0.96) 36%,"
-        f"rgba(248,250,252,0.65) 55%,"
-        f"rgba(248,250,252,0.05) 78%"
-        f"),"
-        f"url('data:image/png;base64,{hero_base64}')"
-    )
-else:
-    hero_background = (
-        "linear-gradient(135deg,#EFF6FF,#DBEAFE)"
-    )
+HERO_PATH = (
+    BASE_DIR
+    / "assets"
+    / "hero-campus.png"
+)
 
 
 # ============================================================
-# CSS V4
+# CSS
 # ============================================================
 
 st.markdown(
-    f"""
-<style>
-
-/* ==========================================================
-   BASE
-   ========================================================== */
-
-html, body, [class*="css"] {{
-    font-family:
-        Arial,
-        "Helvetica Neue",
-        Helvetica,
-        sans-serif;
-}}
-
-.stApp {{
-    background:
-        #F6F8FB;
-    color:
-        #172033;
-}}
-
-.block-container {{
-    max-width: 1320px;
-    padding-top: 1.7rem;
-    padding-bottom: 4rem;
-}}
-
-
-/* ==========================================================
-   TIPOGRAFÍA EDITORIAL
-   ========================================================== */
-
-.editorial-title,
-.section-heading,
-.hero-title {{
-    font-family:
-        Georgia,
-        "Times New Roman",
-        serif;
-}}
-
-.hero-title {{
-    font-size: 3rem;
-    line-height: 1.03;
-    letter-spacing: -0.035em;
-    color: #10264A;
-    margin: 0.25rem 0 0.8rem 0;
-    font-weight: 700;
-}}
-
-.hero-kicker {{
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.13em;
-    text-transform: uppercase;
-    color: #3768A8;
-    margin-bottom: 0.65rem;
-}}
-
-.hero-lead {{
-    font-family:
-        Georgia,
-        "Times New Roman",
-        serif;
-    font-size: 1.08rem;
-    color: #22395D;
-    line-height: 1.55;
-    max-width: 620px;
-}}
-
-.hero-text {{
-    color: #52637B;
-    line-height: 1.6;
-    max-width: 600px;
-    margin-top: 0.65rem;
-    font-size: 0.96rem;
-}}
-
-
-/* ==========================================================
-   HERO
-   ========================================================== */
-
-.hero-panel {{
-    background-image: {hero_background};
-    background-size: cover;
-    background-position: center right;
-    min-height: 350px;
-
-    border:
-        1px solid #DCE5F0;
-
-    border-radius:
-        18px;
-
-    padding:
-        3rem 2.4rem;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    box-shadow:
-        0 12px 32px
-        rgba(28, 50, 84, 0.08);
-
-    margin-bottom:
-        2rem;
-}}
-
-.hero-content {{
-    width: 57%;
-}}
-
-.hero-badge {{
-    display: inline-block;
-    padding: 0.43rem 0.75rem;
-
-    background:
-        rgba(231,241,255,0.92);
-
-    color:
-        #215B9F;
-
-    border:
-        1px solid #C8DCF7;
-
-    border-radius:
-        999px;
-
-    font-size:
-        0.78rem;
-
-    font-weight:
-        700;
-
-    margin-top:
-        1.25rem;
-}}
-
-
-/* ==========================================================
-   TÍTULOS DE SECCIÓN
-   ========================================================== */
-
-.section-heading {{
-    font-size:
-        1.52rem;
-
-    font-weight:
-        700;
-
-    color:
-        #10264A;
-
-    margin:
-        2.1rem 0 0.25rem 0;
-}}
-
-.section-description {{
-    color:
-        #718096;
-
-    font-size:
-        0.91rem;
-
-    margin-bottom:
-        1.15rem;
-}}
-
-.blue-line {{
-    height: 3px;
-    width: 44px;
-    background: #2563EB;
-    border-radius: 20px;
-    margin: 0.45rem 0 1.15rem 0;
-}}
-
-
-/* ==========================================================
-   TARJETAS DEL FLUJO
-   ========================================================== */
-
-.flow-card {{
-    background: white;
-
-    border:
-        1px solid #DFE7F1;
-
-    border-radius:
-        13px;
-
-    padding:
-        1.15rem;
-
-    min-height:
-        190px;
-
-    box-shadow:
-        0 4px 15px
-        rgba(31, 55, 90, 0.035);
-}}
-
-.flow-number {{
-    width:
-        32px;
-
-    height:
-        32px;
-
-    display:
-        flex;
-
-    align-items:
-        center;
-
-    justify-content:
-        center;
-
-    border-radius:
-        50%;
-
-    background:
-        #E1EDFF;
-
-    color:
-        #1D63D5;
-
-    font-weight:
-        700;
-
-    margin-bottom:
-        1rem;
-}}
-
-.flow-icon {{
-    font-size:
-        1.5rem;
-
-    margin-bottom:
-        0.5rem;
-}}
-
-.flow-title {{
-    font-family:
-        Georgia,
-        "Times New Roman",
-        serif;
-
-    color:
-        #10264A;
-
-    font-size:
-        1.05rem;
-
-    font-weight:
-        700;
-
-    margin-bottom:
-        0.45rem;
-}}
-
-.flow-text {{
-    color:
-        #607087;
-
-    font-size:
-        0.9rem;
-
-    line-height:
-        1.55;
-}}
-
-
-/* ==========================================================
-   BLOQUES PRINCIPALES
-   ========================================================== */
-
-.content-panel {{
-    background:
-        white;
-
-    border:
-        1px solid #E1E8F0;
-
-    border-radius:
-        14px;
-
-    padding:
-        1.2rem 1.35rem;
-
-    margin:
-        1rem 0;
-
-    box-shadow:
-        0 5px 18px
-        rgba(30, 55, 90, 0.035);
-}}
-
-
-/* ==========================================================
-   MÉTRICAS
-   ========================================================== */
-
-div[data-testid="stMetric"] {{
-    background:
-        white;
-
-    border:
-        1px solid #DFE7F1;
-
-    border-radius:
-        13px;
-
-    padding:
-        1rem 1rem 0.85rem 1rem;
-
-    min-height:
-        112px;
-
-    box-shadow:
-        0 4px 14px
-        rgba(27, 52, 86, 0.035);
-}}
-
-div[data-testid="stMetricLabel"] {{
-    color:
-        #687990;
-
-    font-size:
-        0.82rem;
-
-    font-weight:
-        600;
-}}
-
-div[data-testid="stMetricValue"] {{
-    color:
-        #10264A;
-
-    font-family:
-        Georgia,
-        "Times New Roman",
-        serif;
-
-    font-weight:
-        700;
-}}
-
-
-/* ==========================================================
-   BOTONES
-   ========================================================== */
-
-div.stButton > button {{
-    min-height:
-        48px;
-
-    border-radius:
-        8px;
-
-    font-weight:
-        700;
-
-    border:
-        1px solid #1D5FDA;
-
-    transition:
-        0.2s ease;
-}}
-
-div.stButton > button[kind="primary"] {{
-    background:
-        #1769E0;
-
-    color:
-        white;
-}}
-
-div.stButton > button[kind="primary"]:hover {{
-    background:
-        #1057BE;
-
-    border-color:
-        #1057BE;
-}}
-
-div.stDownloadButton > button {{
-    min-height:
-        48px;
-
-    border-radius:
-        8px;
-
-    background:
-        white;
-
-    border:
-        1px solid #CCD9E7;
-
-    color:
-        #17345B;
-
-    font-weight:
-        700;
-}}
-
-div.stDownloadButton > button:hover {{
-    border-color:
-        #2A69C7;
-
-    color:
-        #195EBF;
-}}
-
-
-/* ==========================================================
-   FILE UPLOADER
-   ========================================================== */
-
-section[data-testid="stFileUploaderDropzone"] {{
-    background:
-        #FBFCFE;
-
-    border:
-        1.5px dashed #B9CCE5;
-
-    border-radius:
-        12px;
-
-    min-height:
-        145px;
-}}
-
-
-/* ==========================================================
-   DATAFRAME
-   ========================================================== */
-
-div[data-testid="stDataFrame"] {{
-    border:
-        1px solid #DEE6EF;
-
-    border-radius:
-        10px;
-
-    overflow:
-        hidden;
-}}
-
-
-/* ==========================================================
-   ALERTAS
-   ========================================================== */
-
-div[data-testid="stAlert"] {{
-    border-radius:
-        10px;
-}}
-
-
-/* ==========================================================
-   TABS
-   ========================================================== */
-
-button[data-baseweb="tab"] {{
-    font-weight:
-        600;
-}}
-
-button[data-baseweb="tab"][aria-selected="true"] {{
-    color:
-        #175FCD;
-}}
-
-
-/* ==========================================================
-   SIDEBAR
-   ========================================================== */
-
-section[data-testid="stSidebar"] {{
-    background:
-        #11294B;
-}}
-
-section[data-testid="stSidebar"] > div {{
-    padding-top:
-        1.2rem;
-}}
-
-.sidebar-brand {{
-    font-family:
-        Georgia,
-        "Times New Roman",
-        serif;
-
-    color:
-        white;
-
-    font-size:
-        1.55rem;
-
-    line-height:
-        1.15;
-
-    font-weight:
-        700;
-
-    margin:
-        0.3rem 0 0.6rem 0;
-}}
-
-.sidebar-copy {{
-    color:
-        #D5E0EF;
-
-    font-size:
-        0.9rem;
-
-    line-height:
-        1.6;
-}}
-
-.sidebar-label {{
-    color:
-        #89A9D1;
-
-    font-size:
-        0.74rem;
-
-    text-transform:
-        uppercase;
-
-    letter-spacing:
-        0.11em;
-
-    font-weight:
-        700;
-
-    margin-top:
-        1.4rem;
-
-    margin-bottom:
-        0.75rem;
-}}
-
-.sidebar-item {{
-    color:
-        #F0F5FB;
-
-    font-size:
-        0.92rem;
-
-    padding:
-        0.43rem 0;
-
-    border-bottom:
-        1px solid
-        rgba(255,255,255,0.055);
-}}
-
-
-/* ==========================================================
-   FOOTER
-   ========================================================== */
-
-.footer {{
-    border-top:
-        1px solid #DEE5ED;
-
-    margin-top:
-        2.5rem;
-
-    padding-top:
-        1.2rem;
-
-    color:
-        #8492A6;
-
-    font-size:
-        0.82rem;
-}}
-
-</style>
-""",
+    """
+    <style>
+
+    /* --------------------------------------------------------
+       BASE
+    -------------------------------------------------------- */
+
+    .stApp {
+        background: #F7F9FC;
+    }
+
+    .block-container {
+        max-width: 1320px;
+        padding-top: 1.5rem;
+        padding-bottom: 4rem;
+    }
+
+    html, body, [class*="css"] {
+        font-family:
+            Arial,
+            "Helvetica Neue",
+            Helvetica,
+            sans-serif;
+        color: #17233B;
+    }
+
+
+    /* --------------------------------------------------------
+       TÍTULOS
+    -------------------------------------------------------- */
+
+    h1, h2, h3 {
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        color: #0E2A52 !important;
+    }
+
+    h1 {
+        font-size: 3rem !important;
+        letter-spacing: -0.035em;
+        line-height: 1.03;
+    }
+
+    h2 {
+        font-size: 1.65rem !important;
+        margin-top: 1.7rem !important;
+    }
+
+    h3 {
+        font-size: 1.15rem !important;
+    }
+
+
+    /* --------------------------------------------------------
+       TEXTO SECUNDARIO
+    -------------------------------------------------------- */
+
+    .stCaption,
+    div[data-testid="stCaptionContainer"] {
+        color: #718096;
+    }
+
+
+    /* --------------------------------------------------------
+       SIDEBAR
+    -------------------------------------------------------- */
+
+    section[data-testid="stSidebar"] {
+        background: #102E55;
+        border-right: none;
+    }
+
+    section[data-testid="stSidebar"] * {
+        color: #EEF5FF;
+    }
+
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3 {
+        color: white !important;
+    }
+
+    section[data-testid="stSidebar"] hr {
+        border-color: rgba(255,255,255,0.14);
+    }
+
+    section[data-testid="stSidebar"] div[data-testid="stCaptionContainer"] {
+        color: #BFD0E6 !important;
+    }
+
+
+    /* --------------------------------------------------------
+       CONTENEDORES / TARJETAS
+    -------------------------------------------------------- */
+
+    div[data-testid="stVerticalBlockBorderWrapper"] {
+        background: white;
+        border-color: #DFE7F1 !important;
+        border-radius: 14px;
+        box-shadow: 0 5px 18px rgba(24, 49, 83, 0.04);
+    }
+
+
+    /* --------------------------------------------------------
+       MÉTRICAS
+    -------------------------------------------------------- */
+
+    div[data-testid="stMetric"] {
+        background: white;
+        border: 1px solid #DFE7F1;
+        border-radius: 13px;
+        padding: 1rem;
+        min-height: 110px;
+        box-shadow: 0 4px 14px rgba(27, 52, 86, 0.04);
+    }
+
+    div[data-testid="stMetricLabel"] {
+        color: #687990;
+        font-size: 0.82rem;
+        font-weight: 600;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: #102E55;
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif;
+        font-weight: 700;
+    }
+
+
+    /* --------------------------------------------------------
+       BOTÓN PRINCIPAL
+    -------------------------------------------------------- */
+
+    div.stButton > button {
+        min-height: 48px;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+
+    div.stButton > button[kind="primary"] {
+        background: #1769E0;
+        color: white;
+        border: 1px solid #1769E0;
+    }
+
+    div.stButton > button[kind="primary"]:hover {
+        background: #1059C2;
+        border-color: #1059C2;
+    }
+
+
+    /* --------------------------------------------------------
+       BOTONES DE DESCARGA
+    -------------------------------------------------------- */
+
+    div.stDownloadButton > button {
+        min-height: 48px;
+        border-radius: 8px;
+        border: 1px solid #CCD9E7;
+        background: white;
+        color: #15355F;
+        font-weight: 700;
+    }
+
+    div.stDownloadButton > button:hover {
+        border-color: #1769E0;
+        color: #1769E0;
+    }
+
+
+    /* --------------------------------------------------------
+       FILE UPLOADER
+    -------------------------------------------------------- */
+
+    section[data-testid="stFileUploaderDropzone"] {
+        background: #FBFCFE;
+        border: 1.5px dashed #B7CAE4;
+        border-radius: 12px;
+        min-height: 140px;
+    }
+
+
+    /* --------------------------------------------------------
+       DATAFRAME
+    -------------------------------------------------------- */
+
+    div[data-testid="stDataFrame"] {
+        border: 1px solid #DFE7F1;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+
+    /* --------------------------------------------------------
+       ALERTAS
+    -------------------------------------------------------- */
+
+    div[data-testid="stAlert"] {
+        border-radius: 10px;
+    }
+
+
+    /* --------------------------------------------------------
+       TABS
+    -------------------------------------------------------- */
+
+    button[data-baseweb="tab"] {
+        font-weight: 600;
+    }
+
+    button[data-baseweb="tab"][aria-selected="true"] {
+        color: #1769E0;
+    }
+
+
+    /* --------------------------------------------------------
+       IMÁGENES
+    -------------------------------------------------------- */
+
+    div[data-testid="stImage"] img {
+        border-radius: 14px;
+    }
+
+
+    /* --------------------------------------------------------
+       SEPARADORES
+    -------------------------------------------------------- */
+
+    hr {
+        border-color: #E2E8F0;
+    }
+
+    </style>
+    """,
     unsafe_allow_html=True
 )
 
 
 # ============================================================
-# FUNCIONES AUXILIARES
+# FUNCIONES
 # ============================================================
 
 def generar_excel(df_solucion):
@@ -707,34 +344,48 @@ def generar_excel(df_solucion):
                 df_solucion["Grupo"] == grupo
             ]
 
+            nombre_hoja = (
+                f"Grupo {grupo}"
+            )[:31]
+
             df_grupo.to_excel(
                 writer,
-                sheet_name=f"Grupo {grupo}"[:31],
+                sheet_name=nombre_hoja,
                 index=False
             )
 
         # Por profesor
-        for profesor in df_solucion["Profesor"].unique():
+        for profesor in df_solucion[
+            "Profesor"
+        ].unique():
 
             df_profesor = df_solucion[
                 df_solucion["Profesor"]
                 == profesor
             ]
 
+            nombre_hoja = (
+                f"Prof {profesor}"
+            )[:31]
+
             df_profesor.to_excel(
                 writer,
-                sheet_name=f"Prof {profesor}"[:31],
+                sheet_name=nombre_hoja,
                 index=False
             )
 
-        # Formato básico
+        # Ajustes visuales
         for hoja in writer.book.worksheets:
 
             hoja.freeze_panes = "A2"
 
             for columna in hoja.columns:
 
-                letra = columna[0].column_letter
+                letra = (
+                    columna[0]
+                    .column_letter
+                )
+
                 longitud_maxima = 0
 
                 for celda in columna:
@@ -743,7 +394,11 @@ def generar_excel(df_solucion):
 
                         longitud_maxima = max(
                             longitud_maxima,
-                            len(str(celda.value))
+                            len(
+                                str(
+                                    celda.value
+                                )
+                            )
                         )
 
                 hoja.column_dimensions[
@@ -762,21 +417,30 @@ def calcular_conflictos(df):
 
     conflicto_grupo = (
         df.duplicated(
-            subset=["Grupo", "Horario"],
+            subset=[
+                "Grupo",
+                "Horario"
+            ],
             keep=False
         ).sum()
     )
 
     conflicto_profesor = (
         df.duplicated(
-            subset=["Profesor", "Horario"],
+            subset=[
+                "Profesor",
+                "Horario"
+            ],
             keep=False
         ).sum()
     )
 
     conflicto_espacio = (
         df.duplicated(
-            subset=["Espacio", "Horario"],
+            subset=[
+                "Espacio",
+                "Horario"
+            ],
             keep=False
         ).sum()
     )
@@ -794,54 +458,72 @@ def calcular_conflictos(df):
 
 with st.sidebar:
 
-    st.markdown(
-        """
-        <div class="sidebar-brand">
-            Optimizador<br>Universal
-        </div>
+    st.title(
+        "Optimizador\nUniversal"
+    )
 
-        <div class="sidebar-copy">
-            Plataforma de optimización de horarios,
-            espacios y recursos.
-        </div>
+    st.caption(
+        "Plataforma de optimización de "
+        "horarios, espacios y recursos."
+    )
 
-        <div class="sidebar-label">
-            Flujo de trabajo
-        </div>
+    st.divider()
 
-        <div class="sidebar-item">
-            01 · Cargar plantilla
-        </div>
+    st.subheader(
+        "Acerca del proyecto"
+    )
 
-        <div class="sidebar-item">
-            02 · Ejecutar optimización
-        </div>
+    st.write(
+        "Sistema diseñado para apoyar "
+        "la asignación eficiente de "
+        "recursos mediante modelos "
+        "de optimización."
+    )
 
-        <div class="sidebar-item">
-            03 · Analizar resultados
-        </div>
+    st.divider()
 
-        <div class="sidebar-item">
-            04 · Descargar archivos
-        </div>
+    st.subheader(
+        "Aplicaciones"
+    )
 
-        <div class="sidebar-label">
-            Motor
-        </div>
+    st.write(
+        "🎓 Instituciones educativas"
+    )
 
-        <div class="sidebar-item">
-            Investigación de Operaciones
-        </div>
+    st.write(
+        "🏢 Organizaciones y empresas"
+    )
 
-        <div class="sidebar-item">
-            OR-Tools · CP-SAT
-        </div>
+    st.write(
+        "🏫 Gestión de espacios"
+    )
 
-        <div class="sidebar-item">
-            Python · Streamlit
-        </div>
-        """,
-        unsafe_allow_html=True
+    st.write(
+        "👥 Asignación de personal"
+    )
+
+    st.divider()
+
+    st.subheader(
+        "Motor"
+    )
+
+    st.write(
+        "Investigación de Operaciones"
+    )
+
+    st.write(
+        "OR-Tools · CP-SAT"
+    )
+
+    st.write(
+        "Python · Streamlit"
+    )
+
+    st.divider()
+
+    st.caption(
+        "Optimizador Universal · V5"
     )
 
 
@@ -849,192 +531,251 @@ with st.sidebar:
 # HERO
 # ============================================================
 
-st.markdown(
-    """
-    <div class="hero-panel">
+with st.container(border=True):
 
-        <div class="hero-content">
+    hero_left, hero_right = (
+        st.columns(
+            [1.05, 1.15],
+            gap="large"
+        )
+    )
 
-            <div class="hero-kicker">
-                PLANIFICA · OPTIMIZA · TRANSFORMA
-            </div>
+    with hero_left:
 
-            <div class="hero-title">
-                Optimizador Universal
-            </div>
+        st.caption(
+            "PLANIFICA · OPTIMIZA · TRANSFORMA"
+        )
 
-            <div class="hero-lead">
-                Convierte datos operativos
-                en horarios eficientes.
-            </div>
+        st.title(
+            "Optimizador Universal"
+        )
 
-            <div class="hero-text">
-                Una plataforma flexible para instituciones
-                educativas y organizaciones que buscan
-                aprovechar mejor sus recursos mediante
-                modelos de optimización.
-            </div>
+        st.markdown(
+            "### Convierte datos operativos "
+            "en horarios eficientes."
+        )
 
-            <div class="hero-badge">
-                Basada en Investigación de Operaciones
-            </div>
+        st.write(
+            "Una plataforma flexible para "
+            "instituciones educativas y "
+            "organizaciones que buscan "
+            "aprovechar mejor sus recursos "
+            "mediante modelos de optimización."
+        )
 
-        </div>
+        st.info(
+            "📊 Basada en Investigación "
+            "de Operaciones"
+        )
 
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    with hero_right:
+
+        if HERO_PATH.exists():
+
+            st.image(
+                str(HERO_PATH),
+                use_container_width=True
+            )
+
+        else:
+
+            st.warning(
+                "No se encontró "
+                "assets/hero-campus.png"
+            )
+
+
+# ============================================================
+# BLOQUES DE APLICACIÓN
+# ============================================================
+
+st.write("")
+
+ap1, ap2, ap3 = st.columns(3)
+
+with ap1:
+
+    with st.container(
+        border=True
+    ):
+
+        st.subheader(
+            "🎓 Instituciones educativas"
+        )
+
+        st.write(
+            "Optimiza aulas, horarios, "
+            "personal y recursos académicos."
+        )
+
+with ap2:
+
+    with st.container(
+        border=True
+    ):
+
+        st.subheader(
+            "🏢 Organizaciones y empresas"
+        )
+
+        st.write(
+            "Planifica espacios, personal "
+            "y recursos de manera eficiente."
+        )
+
+with ap3:
+
+    with st.container(
+        border=True
+    ):
+
+        st.subheader(
+            "🌐 Solución flexible"
+        )
+
+        st.write(
+            "Adaptable a distintos contextos, "
+            "restricciones y necesidades."
+        )
 
 
 # ============================================================
 # CÓMO FUNCIONA
 # ============================================================
 
-st.markdown(
-    '<div class="section-heading">¿Cómo funciona?</div>',
-    unsafe_allow_html=True
+st.header(
+    "¿Cómo funciona?"
 )
 
-st.markdown(
-    '<div class="blue-line"></div>',
-    unsafe_allow_html=True
+st.caption(
+    "Cuatro pasos para convertir tus datos "
+    "en una solución optimizada."
 )
 
-st.markdown(
-    '<div class="section-description">'
-    'Cuatro pasos para convertir tus datos en una solución optimizada.'
-    '</div>',
-    unsafe_allow_html=True
+paso1, paso2, paso3, paso4 = (
+    st.columns(4)
 )
 
-p1, p2, p3, p4 = st.columns(4)
 
-with p1:
+with paso1:
 
-    st.markdown(
-        """
-        <div class="flow-card">
-            <div class="flow-number">1</div>
-            <div class="flow-icon">📄</div>
-            <div class="flow-title">
-                Carga tu plantilla
-            </div>
-            <div class="flow-text">
-                Sube el archivo Excel con la información
-                de grupos, personal, espacios y horarios.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    with st.container(
+        border=True
+    ):
 
-with p2:
+        st.markdown("### ①")
 
-    st.markdown(
-        """
-        <div class="flow-card">
-            <div class="flow-number">2</div>
-            <div class="flow-icon">⚙️</div>
-            <div class="flow-title">
-                Ejecuta la optimización
-            </div>
-            <div class="flow-text">
-                El motor analiza restricciones
-                y busca una solución factible.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.subheader(
+            "Carga tu plantilla"
+        )
 
-with p3:
+        st.write(
+            "Sube el archivo Excel con "
+            "grupos, personal, espacios "
+            "y horarios."
+        )
 
-    st.markdown(
-        """
-        <div class="flow-card">
-            <div class="flow-number">3</div>
-            <div class="flow-icon">📊</div>
-            <div class="flow-title">
-                Analiza los resultados
-            </div>
-            <div class="flow-text">
-                Revisa horarios, indicadores,
-                carga docente y uso de espacios.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
 
-with p4:
+with paso2:
 
-    st.markdown(
-        """
-        <div class="flow-card">
-            <div class="flow-number">4</div>
-            <div class="flow-icon">⬇️</div>
-            <div class="flow-title">
-                Descarga tus archivos
-            </div>
-            <div class="flow-text">
-                Exporta la solución generada
-                en Excel o CSV.
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
+    with st.container(
+        border=True
+    ):
+
+        st.markdown("### ②")
+
+        st.subheader(
+            "Ejecuta la optimización"
+        )
+
+        st.write(
+            "El motor analiza restricciones "
+            "y busca una solución factible."
+        )
+
+
+with paso3:
+
+    with st.container(
+        border=True
+    ):
+
+        st.markdown("### ③")
+
+        st.subheader(
+            "Analiza los resultados"
+        )
+
+        st.write(
+            "Revisa indicadores, horarios, "
+            "carga docente y uso de espacios."
+        )
+
+
+with paso4:
+
+    with st.container(
+        border=True
+    ):
+
+        st.markdown("### ④")
+
+        st.subheader(
+            "Descarga tus archivos"
+        )
+
+        st.write(
+            "Exporta la solución generada "
+            "en Excel o CSV."
+        )
+
+
+# ============================================================
+# 1. CARGAR PLANTILLA
+# ============================================================
+
+st.header(
+    "1. Cargar plantilla"
+)
+
+st.caption(
+    "Selecciona el archivo Excel "
+    "que contiene los datos a optimizar."
+)
+
+with st.container(
+    border=True
+):
+
+    archivo_excel = (
+        st.file_uploader(
+            "Sube tu plantilla Excel",
+            type=["xlsx"]
+        )
     )
 
 
 # ============================================================
-# CARGAR PLANTILLA
-# ============================================================
-
-st.markdown(
-    '<div class="section-heading">'
-    '1. Cargar plantilla'
-    '</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="blue-line"></div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="section-description">'
-    'Selecciona el archivo Excel con los datos que deseas optimizar.'
-    '</div>',
-    unsafe_allow_html=True
-)
-
-archivo_excel = st.file_uploader(
-    "Sube tu plantilla Excel",
-    type=["xlsx"],
-    label_visibility="collapsed"
-)
-
-
-# ============================================================
-# MANEJO DE CAMBIO DE ARCHIVO
+# CONTROL DE ESTADO
 # ============================================================
 
 if archivo_excel is not None:
 
-    nombre_actual = archivo_excel.name
+    archivo_id = (
+        archivo_excel.name,
+        archivo_excel.size
+    )
 
     if (
         st.session_state.get(
-            "archivo_actual"
+            "archivo_id"
         )
-        != nombre_actual
+        != archivo_id
     ):
 
         st.session_state[
-            "archivo_actual"
-        ] = nombre_actual
+            "archivo_id"
+        ] = archivo_id
 
         st.session_state.pop(
             "resultado_optimizacion",
@@ -1046,20 +787,18 @@ if archivo_excel is not None:
         f"{archivo_excel.name}"
     )
 
+
     # ========================================================
-    # EJECUTAR
+    # 2. EJECUTAR OPTIMIZACIÓN
     # ========================================================
 
-    st.markdown(
-        '<div class="section-heading">'
-        '2. Generar horario óptimo'
-        '</div>',
-        unsafe_allow_html=True
+    st.header(
+        "2. Generar horario óptimo"
     )
 
-    st.markdown(
-        '<div class="blue-line"></div>',
-        unsafe_allow_html=True
+    st.caption(
+        "El motor buscará una asignación "
+        "que respete las restricciones configuradas."
     )
 
     if st.button(
@@ -1069,8 +808,8 @@ if archivo_excel is not None:
     ):
 
         with st.spinner(
-            "Analizando restricciones y buscando "
-            "la mejor solución disponible..."
+            "Analizando restricciones y "
+            "buscando la mejor solución..."
         ):
 
             try:
@@ -1094,382 +833,405 @@ if archivo_excel is not None:
 
 
 # ============================================================
-# RESULTADO GUARDADO
+# RECUPERAR RESULTADO
 # ============================================================
 
-resultado = st.session_state.get(
-    "resultado_optimizacion"
+resultado = (
+    st.session_state.get(
+        "resultado_optimizacion"
+    )
 )
 
 
-if resultado is not None:
+# ============================================================
+# RESULTADO OK
+# ============================================================
 
-    # ========================================================
-    # RESULTADO CORRECTO
-    # ========================================================
+if (
+    resultado is not None
+    and resultado.get(
+        "estado"
+    ) == "OK"
+):
 
-    if resultado.get("estado") == "OK":
-
-        df_solucion = resultado[
+    df_solucion = (
+        resultado[
             "solucion"
         ].copy()
+    )
 
-        conflictos = calcular_conflictos(
+    conflictos = (
+        calcular_conflictos(
             df_solucion
         )
+    )
+
+    st.success(
+        "✅ Optimización completada "
+        "correctamente."
+    )
+
+
+    # ========================================================
+    # 3. DASHBOARD
+    # ========================================================
+
+    st.header(
+        "3. Dashboard"
+    )
+
+    st.caption(
+        "Resumen de la solución generada."
+    )
+
+    met1, met2, met3, met4 = (
+        st.columns(4)
+    )
+
+    met1.metric(
+        "Eventos",
+        len(
+            df_solucion
+        )
+    )
+
+    met2.metric(
+        "Grupos",
+        df_solucion[
+            "Grupo"
+        ].nunique()
+    )
+
+    met3.metric(
+        "Profesores utilizados",
+        df_solucion[
+            "Profesor"
+        ].nunique()
+    )
+
+    met4.metric(
+        "Espacios utilizados",
+        df_solucion[
+            "Espacio"
+        ].nunique()
+    )
+
+    met5, met6, met7, met8 = (
+        st.columns(4)
+    )
+
+    met5.metric(
+        "Bloques utilizados",
+        df_solucion[
+            "Horario"
+        ].nunique()
+    )
+
+    met6.metric(
+        "Materias",
+        df_solucion[
+            "Materia"
+        ].nunique()
+    )
+
+    met7.metric(
+        "Conflictos",
+        conflictos
+    )
+
+    met8.metric(
+        "Eventos programados",
+        "100%"
+    )
+
+    if conflictos == 0:
 
         st.success(
-            "Optimización completada correctamente."
+            "Validación completada: "
+            "no se detectaron conflictos "
+            "de grupo, profesor o espacio."
         )
-
-        # ====================================================
-        # DASHBOARD
-        # ====================================================
-
-        st.markdown(
-            '<div class="section-heading">'
-            '3. Dashboard'
-            '</div>',
-            unsafe_allow_html=True
-        )
-
-        st.markdown(
-            '<div class="blue-line"></div>',
-            unsafe_allow_html=True
-        )
-
-        st.markdown(
-            '<div class="section-description">'
-            'Resumen ejecutivo de la solución generada.'
-            '</div>',
-            unsafe_allow_html=True
-        )
-
-        m1, m2, m3, m4 = st.columns(4)
-
-        m1.metric(
-            "Eventos",
-            len(df_solucion)
-        )
-
-        m2.metric(
-            "Grupos",
-            df_solucion[
-                "Grupo"
-            ].nunique()
-        )
-
-        m3.metric(
-            "Profesores utilizados",
-            df_solucion[
-                "Profesor"
-            ].nunique()
-        )
-
-        m4.metric(
-            "Espacios utilizados",
-            df_solucion[
-                "Espacio"
-            ].nunique()
-        )
-
-        m5, m6, m7, m8 = st.columns(4)
-
-        m5.metric(
-            "Bloques utilizados",
-            df_solucion[
-                "Horario"
-            ].nunique()
-        )
-
-        m6.metric(
-            "Materias",
-            df_solucion[
-                "Materia"
-            ].nunique()
-        )
-
-        m7.metric(
-            "Conflictos",
-            conflictos
-        )
-
-        m8.metric(
-            "Eventos programados",
-            "100%"
-        )
-
-        if conflictos == 0:
-
-            st.success(
-                "Validación completada: "
-                "no se detectaron conflictos "
-                "de grupo, profesor o espacio."
-            )
-
-        else:
-
-            st.warning(
-                f"Se detectaron {conflictos} "
-                "posibles conflictos."
-            )
-
-        # ====================================================
-        # RESULTADOS
-        # ====================================================
-
-        st.markdown(
-            '<div class="section-heading">'
-            '4. Resultados'
-            '</div>',
-            unsafe_allow_html=True
-        )
-
-        st.markdown(
-            '<div class="blue-line"></div>',
-            unsafe_allow_html=True
-        )
-
-        tab1, tab2, tab3, tab4 = st.tabs(
-            [
-                "Horario general",
-                "Por grupo",
-                "Carga docente",
-                "Uso de espacios"
-            ]
-        )
-
-        # ----------------------------------------------------
-        # HORARIO GENERAL
-        # ----------------------------------------------------
-
-        with tab1:
-
-            st.markdown(
-                "### Horario optimizado"
-            )
-
-            st.dataframe(
-                df_solucion,
-                use_container_width=True,
-                hide_index=True
-            )
-
-        # ----------------------------------------------------
-        # POR GRUPO
-        # ----------------------------------------------------
-
-        with tab2:
-
-            grupo_seleccionado = (
-                st.selectbox(
-                    "Selecciona un grupo",
-                    sorted(
-                        df_solucion[
-                            "Grupo"
-                        ].unique()
-                    )
-                )
-            )
-
-            df_grupo = df_solucion[
-                df_solucion["Grupo"]
-                == grupo_seleccionado
-            ]
-
-            st.dataframe(
-                df_grupo,
-                use_container_width=True,
-                hide_index=True
-            )
-
-        # ----------------------------------------------------
-        # CARGA DOCENTE
-        # ----------------------------------------------------
-
-        with tab3:
-
-            carga_docente = (
-                df_solucion
-                .groupby("Profesor")
-                .size()
-                .reset_index(
-                    name="Clases asignadas"
-                )
-                .sort_values(
-                    "Clases asignadas",
-                    ascending=False
-                )
-            )
-
-            st.dataframe(
-                carga_docente,
-                use_container_width=True,
-                hide_index=True
-            )
-
-            st.bar_chart(
-                carga_docente.set_index(
-                    "Profesor"
-                )
-            )
-
-        # ----------------------------------------------------
-        # USO DE ESPACIOS
-        # ----------------------------------------------------
-
-        with tab4:
-
-            uso_espacios = (
-                df_solucion
-                .groupby("Espacio")
-                .size()
-                .reset_index(
-                    name="Clases asignadas"
-                )
-                .sort_values(
-                    "Clases asignadas",
-                    ascending=False
-                )
-            )
-
-            st.dataframe(
-                uso_espacios,
-                use_container_width=True,
-                hide_index=True
-            )
-
-            st.bar_chart(
-                uso_espacios.set_index(
-                    "Espacio"
-                )
-            )
-
-        # ====================================================
-        # DESCARGAS
-        # ====================================================
-
-        st.markdown(
-            '<div class="section-heading">'
-            '5. Descargar resultados'
-            '</div>',
-            unsafe_allow_html=True
-        )
-
-        st.markdown(
-            '<div class="blue-line"></div>',
-            unsafe_allow_html=True
-        )
-
-        st.markdown(
-            '<div class="section-description">'
-            'Lleva la solución a donde la necesites.'
-            '</div>',
-            unsafe_allow_html=True
-        )
-
-        excel_resultado = generar_excel(
-            df_solucion
-        )
-
-        csv_resultado = (
-            df_solucion
-            .to_csv(
-                index=False
-            )
-            .encode(
-                "utf-8-sig"
-            )
-        )
-
-        d1, d2 = st.columns(2)
-
-        with d1:
-
-            st.download_button(
-                "📊 Descargar Excel profesional",
-                data=excel_resultado,
-                file_name=(
-                    "Horario_Optimizado_"
-                    "Optimizador_Universal.xlsx"
-                ),
-                mime=(
-                    "application/"
-                    "vnd.openxmlformats-officedocument."
-                    "spreadsheetml.sheet"
-                ),
-                use_container_width=True
-            )
-
-        with d2:
-
-            st.download_button(
-                "📄 Descargar CSV",
-                data=csv_resultado,
-                file_name=(
-                    "Horario_Optimizado.csv"
-                ),
-                mime="text/csv",
-                use_container_width=True
-            )
-
-
-    # ========================================================
-    # SIN SOLUCIÓN
-    # ========================================================
-
-    elif resultado.get(
-        "estado"
-    ) == "SIN_SOLUCION":
-
-        st.error(
-            "No se encontró una solución factible."
-        )
-
-        st.warning(
-            resultado.get(
-                "mensaje",
-                ""
-            )
-        )
-
-        with st.expander(
-            "¿Qué puedo revisar?"
-        ):
-
-            st.write(
-                """
-                Revisa la disponibilidad del personal,
-                la capacidad y tipo de los espacios,
-                las materias habilitadas y la cantidad
-                de bloques horarios disponibles.
-                """
-            )
-
-
-    # ========================================================
-    # ERROR
-    # ========================================================
 
     else:
 
-        st.error(
-            "No fue posible procesar la plantilla."
+        st.warning(
+            f"Se detectaron "
+            f"{conflictos} posibles conflictos."
         )
 
-        st.write(
-            resultado.get(
-                "mensaje",
-                "Error desconocido."
+
+    # ========================================================
+    # 4. RESULTADOS
+    # ========================================================
+
+    st.header(
+        "4. Resultados"
+    )
+
+    st.caption(
+        "Explora la solución desde "
+        "diferentes perspectivas."
+    )
+
+    tab1, tab2, tab3, tab4 = (
+        st.tabs(
+            [
+                "📅 Horario general",
+                "👥 Por grupo",
+                "🎓 Carga docente",
+                "🏫 Uso de espacios"
+            ]
+        )
+    )
+
+
+    # --------------------------------------------------------
+    # GENERAL
+    # --------------------------------------------------------
+
+    with tab1:
+
+        st.subheader(
+            "Horario optimizado"
+        )
+
+        st.dataframe(
+            df_solucion,
+            use_container_width=True,
+            hide_index=True
+        )
+
+
+    # --------------------------------------------------------
+    # GRUPO
+    # --------------------------------------------------------
+
+    with tab2:
+
+        grupo_seleccionado = (
+            st.selectbox(
+                "Selecciona un grupo",
+                sorted(
+                    df_solucion[
+                        "Grupo"
+                    ].unique()
+                )
             )
         )
 
+        df_grupo = (
+            df_solucion[
+                df_solucion[
+                    "Grupo"
+                ]
+                == grupo_seleccionado
+            ]
+        )
+
+        st.dataframe(
+            df_grupo,
+            use_container_width=True,
+            hide_index=True
+        )
+
+
+    # --------------------------------------------------------
+    # DOCENTES
+    # --------------------------------------------------------
+
+    with tab3:
+
+        carga_docente = (
+            df_solucion
+            .groupby(
+                "Profesor"
+            )
+            .size()
+            .reset_index(
+                name="Clases asignadas"
+            )
+            .sort_values(
+                "Clases asignadas",
+                ascending=False
+            )
+        )
+
+        st.dataframe(
+            carga_docente,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.bar_chart(
+            carga_docente.set_index(
+                "Profesor"
+            )
+        )
+
+
+    # --------------------------------------------------------
+    # ESPACIOS
+    # --------------------------------------------------------
+
+    with tab4:
+
+        uso_espacios = (
+            df_solucion
+            .groupby(
+                "Espacio"
+            )
+            .size()
+            .reset_index(
+                name="Clases asignadas"
+            )
+            .sort_values(
+                "Clases asignadas",
+                ascending=False
+            )
+        )
+
+        st.dataframe(
+            uso_espacios,
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.bar_chart(
+            uso_espacios.set_index(
+                "Espacio"
+            )
+        )
+
+
+    # ========================================================
+    # 5. DESCARGAS
+    # ========================================================
+
+    st.header(
+        "5. Descargar resultados"
+    )
+
+    st.caption(
+        "Exporta la solución para "
+        "consulta, entrega o análisis."
+    )
+
+    excel_resultado = (
+        generar_excel(
+            df_solucion
+        )
+    )
+
+    csv_resultado = (
+        df_solucion
+        .to_csv(
+            index=False
+        )
+        .encode(
+            "utf-8-sig"
+        )
+    )
+
+    descarga1, descarga2 = (
+        st.columns(2)
+    )
+
+    with descarga1:
+
+        st.download_button(
+            label=(
+                "📊 Descargar Excel profesional"
+            ),
+            data=excel_resultado,
+            file_name=(
+                "Horario_Optimizado_"
+                "Optimizador_Universal.xlsx"
+            ),
+            mime=(
+                "application/"
+                "vnd.openxmlformats-officedocument."
+                "spreadsheetml.sheet"
+            ),
+            use_container_width=True
+        )
+
+    with descarga2:
+
+        st.download_button(
+            label=(
+                "📄 Descargar CSV"
+            ),
+            data=csv_resultado,
+            file_name=(
+                "Horario_Optimizado.csv"
+            ),
+            mime="text/csv",
+            use_container_width=True
+        )
+
+
+# ============================================================
+# SIN SOLUCIÓN
+# ============================================================
+
+elif (
+    resultado is not None
+    and resultado.get(
+        "estado"
+    ) == "SIN_SOLUCION"
+):
+
+    st.error(
+        "No se encontró una solución factible."
+    )
+
+    st.warning(
+        resultado.get(
+            "mensaje",
+            ""
+        )
+    )
+
+    with st.expander(
+        "¿Qué puedo revisar?"
+    ):
+
+        st.write(
+            "Revisa la disponibilidad del "
+            "personal, capacidad y tipo de "
+            "espacios, materias habilitadas "
+            "y bloques horarios disponibles."
+        )
+
+
+# ============================================================
+# ERROR
+# ============================================================
+
+elif resultado is not None:
+
+    st.error(
+        "No fue posible procesar "
+        "la plantilla."
+    )
+
+    st.write(
+        resultado.get(
+            "mensaje",
+            "Error desconocido."
+        )
+    )
+
+
+# ============================================================
+# ESTADO INICIAL
+# ============================================================
 
 elif archivo_excel is None:
 
     st.info(
-        "Carga una plantilla Excel "
-        "para comenzar la optimización."
+        "👆 Carga una plantilla Excel "
+        "para comenzar."
     )
 
 
@@ -1477,12 +1239,11 @@ elif archivo_excel is None:
 # FOOTER
 # ============================================================
 
-st.markdown(
-    """
-    <div class="footer">
-        Optimizador Universal · Plataforma de optimización
-        basada en Investigación de Operaciones
-    </div>
-    """,
-    unsafe_allow_html=True
+st.divider()
+
+st.caption(
+    "Optimizador Universal · "
+    "Investigación de Operaciones "
+    "aplicada a la asignación eficiente "
+    "de recursos."
 )
