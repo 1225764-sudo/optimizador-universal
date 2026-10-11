@@ -355,6 +355,26 @@ def optimizar_desde_excel(archivo_excel):
                 for other in sums[1:]:
                     model.Add(sums[0] == other)
 
+    # Romper simetría segura entre sesiones intercambiables de una misma
+    # combinación grupo-materia. Las etiquetas Sesion 1, 2, ... no tienen
+    # significado académico distinto, por lo que podemos imponer que sus
+    # periodos aparezcan en orden cronológico sin eliminar horarios reales.
+    # Esto reduce soluciones equivalentes y deja más tiempo al solver para
+    # mejorar la calidad temporal.
+    slot_rank = {s["id"]: rank for rank, s in enumerate(sorted(slots, key=lambda z: (list(slots_by_day).index(z["dia"]), z["inicio"], z["fin"]))) }
+    for grupo, materia in {(e["grupo"], e["materia"]) for e in eventos}:
+        ids_eventos = sorted(
+            [i for i, e in enumerate(eventos) if e["grupo"] == grupo and e["materia"] == materia],
+            key=lambda i: eventos[i]["sesion"],
+        )
+        slot_exprs = []
+        for i in ids_eventos:
+            terms = [slot_rank[h] * v for (eid, _, _, h), v in x.items() if eid == i]
+            if terms:
+                slot_exprs.append(sum(terms))
+        for a, b in zip(slot_exprs, slot_exprs[1:]):
+            model.Add(a < b)
+
     # ============================================================
     # 11. VARIABLES DE PRESENCIA DE GRUPO POR PERIODO
     # ============================================================
@@ -517,6 +537,28 @@ def optimizar_desde_excel(archivo_excel):
         objective_terms.append(c_late * peso_tardio * late_expr)
     if peso_equilibrio > 0 and balance_var is not None:
         objective_terms.append(c_balance * peso_equilibrio * balance_expr)
+    # CP-SAT utiliza enteros de 64 bits. En instituciones muy grandes, una
+    # codificación jerárquica por coeficientes puede crecer demasiado.
+    # Rechazamos de forma explícita una escala insegura en lugar de permitir
+    # overflow silencioso o alterar prioridades.
+    INT64_SAFE_OBJECTIVE = 8_000_000_000_000_000_000
+    objective_upper_bound = 0
+    if peso_huecos > 0 and gap_vars:
+        objective_upper_bound += c_gap * peso_huecos * len(gap_vars)
+    if peso_permanencia > 0 and span_vars:
+        objective_upper_bound += c_span * peso_permanencia * sum(span_upper_bounds)
+    if peso_tardio > 0 and late_terms:
+        raw_late_bound = sum(max(0, s["fin"] - (hora_preferida_salida or s["fin"])) for s in slots) * len(grupos)
+        objective_upper_bound += c_late * peso_tardio * raw_late_bound
+    if peso_equilibrio > 0 and balance_var is not None:
+        objective_upper_bound += c_balance * peso_equilibrio * len(eventos)
+    if objective_upper_bound > INT64_SAFE_OBJECTIVE:
+        return {
+            "estado": "ERROR",
+            "mensaje": ("La escala de la función objetivo supera un rango entero seguro para CP-SAT. "
+                        "El escenario es demasiado grande para la codificación jerárquica actual; "
+                        "reduzca pesos o utilice una estrategia lexicográfica por fases."),
+        }
     if objective_terms:
         model.Minimize(sum(objective_terms))
 
@@ -524,8 +566,14 @@ def optimizar_desde_excel(archivo_excel):
     # 14. RESOLVER
     # ============================================================
     solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = float(config.get("Tiempo_max_solver_segundos", 30) or 30)
-    solver.parameters.num_search_workers = max(1, _config_int(config, "Num_search_workers", 1))
+    # La optimización temporal es considerablemente más difícil que hallar
+    # cualquier solución factible. Los valores siguen siendo configurables.
+    tiempo_solver = float(config.get("Tiempo_max_solver_segundos", config.get("Tiempo_max_solver", 60)) or 60)
+    workers_solver = max(1, _config_int(config, "Num_search_workers", 8))
+    semilla_solver = _config_int(config, "Semilla_solver", 42)
+    solver.parameters.max_time_in_seconds = max(1.0, tiempo_solver)
+    solver.parameters.num_search_workers = workers_solver
+    solver.parameters.random_seed = semilla_solver
     status = solver.Solve(model)
 
     status_names = {
@@ -563,6 +611,53 @@ def optimizar_desde_excel(archivo_excel):
     df_resultado = pd.DataFrame(resultados)
     if df_resultado.empty:
         return {"estado": "ERROR", "mensaje": "El modelo encontró una solución, pero no se generaron asignaciones."}
+
+    # ------------------------------------------------------------
+    # Validación independiente post-solver. No se confía únicamente
+    # en la formulación CP-SAT: comprobamos de nuevo la solución extraída.
+    # ------------------------------------------------------------
+    violaciones = []
+    if len(df_resultado) != len(eventos):
+        violaciones.append(f"sesiones asignadas {len(df_resultado)}/{len(eventos)}")
+
+    # Duplicidad/ausencia de identificadores de evento lógico.
+    counts = df_resultado.groupby(["Grupo", "Materia", "Sesion"]).size()
+    if (counts != 1).any() or len(counts) != len(eventos):
+        violaciones.append("sesiones faltantes o duplicadas")
+
+    # Reconstruir slot desde la etiqueta, que procede del catálogo interno.
+    label_to_slot = {s["label"]: s for s in slots}
+    for horario, sub in df_resultado.groupby("Horario"):
+        if sub["Grupo"].duplicated().any():
+            violaciones.append(f"colisión de grupo en {horario}")
+        if sub["Profesor"].duplicated().any():
+            violaciones.append(f"colisión docente en {horario}")
+        if sub["Espacio"].duplicated().any():
+            violaciones.append(f"colisión de espacio en {horario}")
+
+    for _, r in df_resultado.iterrows():
+        s = label_to_slot.get(r["Horario"])
+        if s is None:
+            violaciones.append(f"horario desconocido: {r['Horario']}")
+            continue
+        prof = r["Profesor"]
+        if r["Materia"] not in info_personal.get(prof, {}).get("materias", []):
+            violaciones.append(f"profesor no habilitado: {prof} - {r['Materia']}")
+        if not disponibilidad_personal.get((prof, s["id"]), False):
+            violaciones.append(f"profesor no disponible: {prof} - {r['Horario']}")
+        # Recuperar requisitos del evento exacto para validar el espacio.
+        matches = [e for e in eventos if e["grupo"] == r["Grupo"] and e["materia"] == r["Materia"] and e["sesion"] == int(r["Sesion"])]
+        if not matches or not espacio_compatible(matches[0], r["Espacio"]):
+            violaciones.append(f"espacio incompatible: {r['Espacio']} - {r['Grupo']} - {r['Materia']}")
+
+    if violaciones:
+        return {
+            "estado": "ERROR_VALIDACION",
+            "estado_solver": status_name,
+            "mensaje": "La solución del solver no superó la validación independiente.",
+            "violaciones": sorted(set(violaciones)),
+            "solucion": df_resultado,
+        }
 
     # Métricas calculadas directamente de la solución.
     total_huecos = sum(solver.Value(v) for v in gap_vars) if gap_vars else 0
@@ -604,6 +699,20 @@ def optimizar_desde_excel(archivo_excel):
             "asignaciones_tardias": int(asignaciones_tardias),
             "hora_preferida_salida": _minutes_to_hhmm(hora_preferida_salida) if hora_preferida_salida is not None else None,
             "desequilibrio_docente": int(solver.Value(balance_var)) if balance_var is not None else 0,
+            "sesiones_asignadas": int(len(df_resultado)),
+            "sesiones_requeridas": int(len(eventos)),
         },
+        "solver": {
+            "status": status_name,
+            "objective_value": float(solver.ObjectiveValue()) if objective_terms else None,
+            "best_objective_bound": float(solver.BestObjectiveBound()) if objective_terms else None,
+            "wall_time_segundos": round(float(solver.WallTime()), 4),
+            "num_conflicts": int(solver.NumConflicts()),
+            "num_branches": int(solver.NumBranches()),
+            "max_time_segundos": float(tiempo_solver),
+            "num_search_workers": int(workers_solver),
+            "semilla_solver": int(semilla_solver),
+        },
+        "validacion": {"ok": True, "violaciones": []},
         "solucion": df_resultado,
     }
